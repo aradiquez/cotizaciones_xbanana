@@ -96,6 +96,9 @@ class Cotizaciones_xbanana_Public {
 		 * class.
 		 */
 
+		wp_register_script('card-js', plugin_dir_url( __FILE__ ) . 'js/card-js.min');
+
+		wp_enqueue_script('card-js');
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/cotizaciones_xbanana-public.js', array( 'jquery' ), $this->version, false );
 
 	}

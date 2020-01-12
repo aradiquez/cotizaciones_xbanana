@@ -78,6 +78,7 @@ class Cotizaciones_xbanana {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+		$this->define_template_hooks();
 
 	}
 
@@ -100,10 +101,22 @@ class Cotizaciones_xbanana {
 	private function load_dependencies() {
 
 		/**
+		 * The class responsible for adding a new option for payment method to WC commerce
+		 * core plugin.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/gateways/dataphone/class-wc-gateway-dataphone.php';
+
+		/**
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cotizaciones_xbanana-loader.php';
+
+		/**
+		 * The class responsible for orchestrating the custom templates of the
+		 * core plugin.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cotizaciones_xbanana-templates-loader.php';
 
 		/**
 		 * The class responsible for defining internationalization functionality
@@ -153,9 +166,15 @@ class Cotizaciones_xbanana {
 	private function define_admin_hooks() {
 
 		$plugin_admin = new Cotizaciones_xbanana_Admin( $this->get_plugin_name(), $this->get_version() );
+		$plugin_basename = plugin_basename( plugin_dir_path( __DIR__ ) . $this->plugin_name . '.php' );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+
+		// Add menu item and settings item
+		$this->loader->add_action( 'admin_menu', $plugin_admin, 'add_plugin_admin_menu' );
+		$this->loader->add_filter( 'plugin_action_links_' . $plugin_basename, $plugin_admin, 'add_action_links' );
+
 
 	}
 
@@ -173,6 +192,21 @@ class Cotizaciones_xbanana {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 
+	}
+
+	/**
+	 * Register all of the hooks related to the public-facing functionality
+	 * of the plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+	private function define_template_hooks() {
+		$plugin_templates = new Cotizaciones_xbanana_Template_Loader();
+
+		$this->loader->add_filter( 'theme_page_templates', $plugin_templates, 'add_new_template' );
+		$this->loader->add_filter( 'wp_insert_post_data', $plugin_templates, 'register_project_templates' );
+		$this->loader->add_filter( 'template_include', $plugin_templates, 'view_project_template' );
 	}
 
 	/**
